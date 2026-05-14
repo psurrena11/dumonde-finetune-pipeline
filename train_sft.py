@@ -2,13 +2,19 @@ from unsloth import FastLanguageModel
 from datasets import Dataset
 from transformers import TrainingArguments
 from trl import SFTTrainer
+import argparse
 import json
 import os
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--model", default="unsloth/gemma-4-E4B-it", help="HuggingFace model ID")
+args = parser.parse_args()
+
 os.makedirs("/workspace/tuned_model", exist_ok=True)
 
+print(f"Loading model: {args.model}")
 model, tokenizer = FastLanguageModel.from_pretrained(
-    "unsloth/gemma-4-E4B-it",
+    args.model,
     load_in_4bit=True,
 )
 
