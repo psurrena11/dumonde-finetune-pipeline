@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+*.gguf
+*.jsonl
+tuned_model/
+gemma4-bws*/
+.env
