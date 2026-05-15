@@ -11,6 +11,7 @@ import json
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--model", default="unsloth/gemma-4-E4B-it", help="HuggingFace model ID")
+parser.add_argument("--data", default="/workspace/training-sft.jsonl", help="Path to training JSONL")
 args = parser.parse_args()
 
 os.makedirs("/workspace/tuned_model", exist_ok=True)
@@ -33,7 +34,7 @@ model = FastLanguageModel.get_peft_model(
 
 # Load JSONL and apply Gemma instruct chat template
 examples = []
-with open("/workspace/interviews-sft.jsonl", "r") as f:
+with open(args.data, "r") as f:
     for line in f:
         line = line.strip()
         if line:
