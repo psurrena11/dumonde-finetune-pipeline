@@ -56,10 +56,11 @@ python /workspace/vast/test_inference.py
 
 ### 3. Export GGUF
 ```bash
-BNB_CUDA_VERSION=130 python /workspace/vast/export_gguf.py
+python /workspace/vast/export_gguf.py
 # Output: /workspace/gemma4-bws-Q4_K_M.gguf (local)
 #         /workspace/gemma4-bws-Q8_0.gguf   (server)
 ```
+> Script merges adapter, converts to f16 via llama.cpp Python converter, then quantizes to Q4/Q8 via llama-quantize binary. llama.cpp is cloned and built by `install.sh`.
 
 ### 4. Pull Q4 locally (LM Studio)
 ```bash
@@ -68,7 +69,7 @@ scp -P <port> root@<host>:/workspace/gemma4-bws-Q4_K_M.gguf ~/Downloads/
 Load in LM Studio, chat template: Gemma.
 
 ### 5a. Serve via llama.cpp
-Build llama.cpp first (see `install.sh` comment), then:
+llama.cpp is built by `install.sh`. Then:
 ```bash
 bash /workspace/vast/serve.sh
 ```

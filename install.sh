@@ -10,8 +10,23 @@ pip install -U unsloth unsloth-zoo
 pip install trl transformers datasets
 pip install -U torchao
 
+# Force reinstall GPU torch — other packages can overwrite it with CPU torch
+pip install torch --index-url https://download.pytorch.org/whl/cu121 --force-reinstall
+pip install torchvision --index-url https://download.pytorch.org/whl/cu121
+
 # For serve_unsloth.py
 pip install fastapi uvicorn pydantic
+
+echo ""
+echo "=== Building llama.cpp (needed for GGUF export) ==="
+apt-get install -y cmake
+if [ ! -d "/workspace/llama.cpp" ]; then
+    git clone https://github.com/ggerganov/llama.cpp /workspace/llama.cpp
+fi
+cd /workspace/llama.cpp
+cmake -B build -DGGML_CUDA=ON
+cmake --build build --config Release -j$(nproc)
+cd /workspace
 
 echo ""
 echo "=== Installing CLI tools ==="
