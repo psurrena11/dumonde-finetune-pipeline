@@ -98,6 +98,19 @@ Standard HuggingFace chat JSONL — one example per line:
 
 See `training-sft.example.jsonl` for sample rows. Rename to `training-sft.jsonl` and replace with your data before uploading.
 
+## Run locally with Ollama
+
+Install Ollama, then create a model from your exported GGUF:
+
+```bash
+cp Modelfile.example Modelfile
+# Edit Modelfile: replace 'your-model-Q4_K_M.gguf' with your actual file path
+ollama create my-model -f Modelfile
+ollama run my-model
+```
+
+The `Modelfile.example` includes the Gemma chat template and sensible default parameters. If you trained on a different model family, update the `TEMPLATE` block to match its chat format.
+
 ## Notes
 
 - `export_gguf.py` creates an isolated Python venv for llama.cpp to avoid dependency conflicts with the training environment

@@ -1,0 +1,10 @@
+FROM ./your-model-Q4_K_M.gguf
+
+TEMPLATE """<start_of_turn>user
+{{ .Prompt }}<end_of_turn>
+<start_of_turn>model
+"""
+
+PARAMETER stop "<end_of_turn>"
+PARAMETER temperature 0.8
+PARAMETER top_p 0.9
