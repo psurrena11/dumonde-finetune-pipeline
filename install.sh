@@ -7,6 +7,7 @@ pip install --upgrade pip
 # Unsloth + CUDA deps (vast.ai PyTorch template already has CUDA/torch)
 pip install "unsloth[colab-new] @ git+https://github.com/unslothai/unsloth.git"
 pip install trl transformers datasets
+pip install -U torchao
 
 # For serve_unsloth.py
 pip install fastapi uvicorn pydantic
