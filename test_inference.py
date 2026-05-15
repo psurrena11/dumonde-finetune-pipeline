@@ -1,3 +1,6 @@
+import os
+os.environ.setdefault("TORCHDYNAMO_DISABLE", "1")
+
 from unsloth import FastLanguageModel
 import argparse
 import torch
