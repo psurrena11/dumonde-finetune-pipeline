@@ -39,6 +39,7 @@ scp -P <port> path/to/interviews-sft.jsonl root@<host>:/workspace/
 python /workspace/vast/train_sft.py
 # Output: /workspace/tuned_model
 ```
+> Note: `BNB_CUDA_VERSION=130` is set inside the script — no prefix needed.
 
 ### 2. Test
 ```bash
@@ -48,7 +49,7 @@ UNSLOTH_USE_MODELSCOPE=0 HF_DATASETS_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
 
 ### 3. Export GGUF
 ```bash
-python /workspace/vast/export_gguf.py
+BNB_CUDA_VERSION=130 python /workspace/vast/export_gguf.py
 # Output: /workspace/gemma4-bws-Q4_K_M.gguf (local)
 #         /workspace/gemma4-bws-Q8_0.gguf   (server)
 ```

@@ -1,3 +1,6 @@
+import os
+os.environ.setdefault("BNB_CUDA_VERSION", "130")
+
 from unsloth import FastLanguageModel
 from datasets import Dataset
 from transformers import TrainingArguments
