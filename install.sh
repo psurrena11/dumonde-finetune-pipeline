@@ -10,9 +10,9 @@ pip install -U unsloth unsloth-zoo
 pip install trl transformers datasets
 pip install -U torchao
 
-# Force reinstall GPU torch — other packages can overwrite it with CPU torch
-pip install torch --index-url https://download.pytorch.org/whl/cu121 --force-reinstall
-pip install torchvision --index-url https://download.pytorch.org/whl/cu121
+# Force reinstall GPU torch — cu124 required for torchao/torch.int1 support
+pip install torch --index-url https://download.pytorch.org/whl/cu124 --force-reinstall
+pip install torchvision --index-url https://download.pytorch.org/whl/cu124
 
 # For serve_unsloth.py
 pip install fastapi uvicorn pydantic
