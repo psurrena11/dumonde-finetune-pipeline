@@ -47,14 +47,19 @@ scp -P <port> path/to/training-sft.jsonl root@<host>:/workspace/
 ### 1. Train
 ```bash
 python /workspace/vast/train_sft.py
-# Custom model: python /workspace/vast/train_sft.py --model mistralai/Mistral-7B-Instruct-v0.3
-# Custom data:  python /workspace/vast/train_sft.py --data /workspace/mydata.jsonl
+# Custom model:    python /workspace/vast/train_sft.py --model mistralai/Mistral-7B-Instruct-v0.3
+# Custom data:     python /workspace/vast/train_sft.py --data /workspace/mydata.jsonl
+# Disable thinking: python /workspace/vast/train_sft.py --no-thinking
 ```
+Thinking mode is enabled by default. Use `--no-thinking` to disable it in the chat template.
+
 Output: `/workspace/tuned_model` (LoRA adapter, ~160MB)
 
 ### 2. Test
 ```bash
 python /workspace/vast/test_inference.py
+# Custom prompt:    python /workspace/vast/test_inference.py --prompt "Your prompt here"
+# Disable thinking: python /workspace/vast/test_inference.py --no-thinking
 ```
 
 ### 3. Export GGUF
