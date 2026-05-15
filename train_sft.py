@@ -12,7 +12,9 @@ import json
 parser = argparse.ArgumentParser()
 parser.add_argument("--model", default="unsloth/gemma-4-E4B-it", help="HuggingFace model ID")
 parser.add_argument("--data", default="/workspace/training-sft.jsonl", help="Path to training JSONL")
+parser.add_argument("--no-thinking", action="store_true", help="Disable thinking mode in chat template")
 args = parser.parse_args()
+enable_thinking = not args.no_thinking
 
 os.makedirs("/workspace/tuned_model", exist_ok=True)
 
@@ -45,6 +47,7 @@ def format_example(ex):
         ex["messages"],
         tokenize=False,
         add_generation_prompt=False,
+        enable_thinking=enable_thinking,
     )
     return {"text": text}
 
