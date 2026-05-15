@@ -2,6 +2,7 @@ __pycache__/
 *.pyc
 *.gguf
 *.jsonl
+!*.example.jsonl
 tuned_model/
 gemma4-bws*/
 .env
