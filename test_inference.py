@@ -1,7 +1,7 @@
 from unsloth import FastLanguageModel
 import torch
 
-model, tokenizer = FastLanguageModel.from_pretrained('/workspace/tuned_model', load_in_4bit=True)
+model, tokenizer = FastLanguageModel.from_pretrained('/workspace/tuned_model', load_in_4bit=False)
 FastLanguageModel.for_inference(model)
 
 prompt = "Background: US, lean-left, Northeast, Catholic, Millennial.\n\nWhat feels most urgent to you politically right now?"

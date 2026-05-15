@@ -51,8 +51,7 @@ python /workspace/vast/train_sft.py
 
 ### 2. Test
 ```bash
-UNSLOTH_USE_MODELSCOPE=0 HF_DATASETS_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
-  python /workspace/vast/test_inference.py
+python /workspace/vast/test_inference.py
 ```
 
 ### 3. Export GGUF
