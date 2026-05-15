@@ -20,8 +20,16 @@ Fine-tune Gemma-4 on vast.ai, export GGUF, serve via llama.cpp or Unsloth API.
 
 ## Setup (fresh instance)
 
+Generate SSH key and add to GitHub before cloning:
 ```bash
-git clone <this-repo> /workspace/vast
+ssh-keygen -t ed25519 -C "vast" -f ~/.ssh/id_ed25519 -N ""
+cat ~/.ssh/id_ed25519.pub
+# Paste output into GitHub → Settings → SSH Keys
+```
+
+Then clone and install:
+```bash
+git clone git@github.com:psurrena11/vast.git /workspace/vast
 cd /workspace/vast
 bash install.sh
 ```
