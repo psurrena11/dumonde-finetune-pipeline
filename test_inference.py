@@ -7,7 +7,7 @@ import torch
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--no-thinking", action="store_true", help="Disable thinking mode")
-parser.add_argument("--prompt", default="Background: US, lean-left, Northeast, Catholic, Millennial.\n\nWhat feels most urgent to you politically right now?")
+parser.add_argument("--prompt", default="What's on your mind lately?")
 args = parser.parse_args()
 
 model, tokenizer = FastLanguageModel.from_pretrained('/workspace/tuned_model', load_in_4bit=False)
