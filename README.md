@@ -32,7 +32,7 @@ cat ~/.ssh/id_ed25519.pub
 
 Clone and install (builds llama.cpp — takes ~10 min):
 ```bash
-git clone git@github.com:<your-repo>/vast.git /workspace/vast
+git clone git@github.com:psurrena11/llm-finetune-pipelin.git /workspace/vast
 bash /workspace/vast/install.sh
 source ~/.bashrc
 ```
