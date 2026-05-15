@@ -28,8 +28,8 @@ if not os.path.exists(LLAMA_DIR):
 if not os.path.exists(VENV_PY):
     print("=== Creating llama.cpp venv ===")
     subprocess.run([sys.executable, "-m", "venv", VENV_DIR], check=True)
-    subprocess.run([VENV_PIP, "install", "-q", "numpy", "sentencepiece", "gguf", "transformers",
-                    "torch", "--index-url", "https://download.pytorch.org/whl/cu124"], check=True)
+    subprocess.run([VENV_PIP, "install", "-q", "numpy", "sentencepiece", "gguf", "transformers"], check=True)
+    subprocess.run([VENV_PIP, "install", "-q", "torch", "--index-url", "https://download.pytorch.org/whl/cu124"], check=True)
 
 # Step 4: convert to f16 GGUF (base for quantization)
 convert = f"{LLAMA_DIR}/convert_hf_to_gguf.py"
