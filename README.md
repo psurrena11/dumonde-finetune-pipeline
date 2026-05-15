@@ -91,10 +91,12 @@ python /workspace/vast/serve_unsloth.py
 
 ## Training data format
 
-Standard HuggingFace chat JSONL:
+Standard HuggingFace chat JSONL — one example per line:
 ```json
 {"messages": [{"role": "user", "content": "..."}, {"role": "assistant", "content": "..."}]}
 ```
+
+See `training-sft.example.jsonl` for sample rows. Rename to `training-sft.jsonl` and replace with your data before uploading.
 
 ## Notes
 
