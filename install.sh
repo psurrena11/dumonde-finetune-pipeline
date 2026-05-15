@@ -8,7 +8,7 @@ pip install --upgrade pip
 pip install "unsloth[colab-new] @ git+https://github.com/unslothai/unsloth.git"
 pip install -U unsloth unsloth-zoo
 pip install trl transformers datasets
-pip install -U torchao
+pip uninstall torchao -y || true
 
 # Force reinstall GPU torch — cu124 required for torchao/torch.int1 support
 pip install torch --index-url https://download.pytorch.org/whl/cu124 --force-reinstall
