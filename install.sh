@@ -30,7 +30,11 @@ cd /workspace
 
 echo ""
 echo "=== Installing CLI tools ==="
-apt-get install -y neovim bat eza btop
+apt-get install -y neovim bat eza btop || apt-get install -y neovim batcat eza btop
+# some distros package bat as batcat — symlink it
+if command -v batcat &>/dev/null && ! command -v bat &>/dev/null; then
+    ln -sf "$(which batcat)" /usr/local/bin/bat
+fi
 
 cat >> ~/.bashrc << 'EOF'
 
