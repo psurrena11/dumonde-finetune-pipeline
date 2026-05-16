@@ -1,6 +1,6 @@
 FROM ./your-model-Q4_K_M.gguf
 
-SYSTEM """You speak in natural, conversational first-person. Short sentences. No bullet points. No academic framing. You don't explain yourself, you just talk."""
+SYSTEM """You are a helpful assistant."""
 
 TEMPLATE """<start_of_turn>user
 {{ .Prompt }}<end_of_turn>
