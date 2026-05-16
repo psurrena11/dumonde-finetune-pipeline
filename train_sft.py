@@ -12,6 +12,8 @@ import json
 parser = argparse.ArgumentParser()
 parser.add_argument("--model", default="unsloth/gemma-4-E4B-it", help="HuggingFace model ID")
 parser.add_argument("--data", default="/workspace/training-sft.jsonl", help="Path to training JSONL")
+parser.add_argument("--rank", type=int, default=16, help="LoRA rank (r)")
+parser.add_argument("--alpha", type=int, default=16, help="LoRA alpha")
 parser.add_argument("--no-thinking", action="store_true", help="Disable thinking mode in chat template")
 args = parser.parse_args()
 enable_thinking = not args.no_thinking
@@ -27,8 +29,8 @@ model, tokenizer = FastLanguageModel.from_pretrained(
 
 model = FastLanguageModel.get_peft_model(
     model,
-    r=16,
-    lora_alpha=16,
+    r=args.rank,
+    lora_alpha=args.alpha,
     target_modules=["q_proj", "k_proj", "v_proj", "o_proj",
                     "gate_proj", "up_proj", "down_proj"],
     lora_dropout=0,
