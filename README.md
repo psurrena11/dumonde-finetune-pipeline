@@ -1,4 +1,4 @@
-# LLM Fine-Tune Pipeline for vast.ai
+# duMonde LLM Fine-Tune Pipeline
 
 SFT fine-tune any HuggingFace model on vast.ai using Unsloth + LoRA, export to GGUF, and serve via llama.cpp or a FastAPI endpoint.
 
