@@ -46,21 +46,28 @@ scp -P <port> path/to/training-sft.jsonl root@<host>:/workspace/
 
 ### 1. Train
 ```bash
-python /workspace/vast/train_sft.py
-# Custom model:    python /workspace/vast/train_sft.py --model mistralai/Mistral-7B-Instruct-v0.3
-# Custom data:     python /workspace/vast/train_sft.py --data /workspace/mydata.jsonl
-# Disable thinking: python /workspace/vast/train_sft.py --no-thinking
+python /workspace/vast/train_sft.py [flags]
 ```
-Thinking mode is enabled by default. Use `--no-thinking` to disable it in the chat template.
+
+| Flag | Default | Description |
+|---|---|---|
+| `--model` | `unsloth/gemma-4-E4B-it` | HuggingFace model ID |
+| `--data` | `/workspace/training-sft.jsonl` | Path to training JSONL |
+| `--rank` | `16` | LoRA rank (r) — higher = more capacity, more VRAM |
+| `--alpha` | `16` | LoRA alpha — higher = stronger training data influence |
+| `--no-thinking` | off | Disable thinking mode in chat template |
 
 Output: `/workspace/tuned_model` (LoRA adapter, ~160MB)
 
 ### 2. Test
 ```bash
-python /workspace/vast/test_inference.py
-# Custom prompt:    python /workspace/vast/test_inference.py --prompt "Your prompt here"
-# Disable thinking: python /workspace/vast/test_inference.py --no-thinking
+python /workspace/vast/test_inference.py [flags]
 ```
+
+| Flag | Default | Description |
+|---|---|---|
+| `--prompt` | `"What's on your mind lately?"` | Prompt to test with |
+| `--no-thinking` | off | Disable thinking mode |
 
 ### 3. Export GGUF
 ```bash
