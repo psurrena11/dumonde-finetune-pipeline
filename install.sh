@@ -29,6 +29,12 @@ cmake --build build --config Release -j$(nproc)
 cd /workspace
 
 echo ""
+echo "=== Setting up nvim config ==="
+mkdir -p ~/.config/nvim
+curl -fsSL https://raw.githubusercontent.com/psurrena11/dumonde-finetune-pipeline/main/init.lua \
+  -o ~/.config/nvim/init.lua
+
+echo ""
 echo "=== Installing CLI tools ==="
 apt-get install -y neovim bat eza btop || apt-get install -y neovim batcat eza btop
 # some distros package bat as batcat — symlink it
