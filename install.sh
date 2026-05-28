@@ -24,7 +24,11 @@ if [ ! -d "/workspace/llama.cpp" ]; then
     git clone https://github.com/ggerganov/llama.cpp /workspace/llama.cpp
 fi
 cd /workspace/llama.cpp
-cmake -B build -DGGML_CUDA=ON
+if ! cmake -B build -DGGML_CUDA=ON; then
+    echo "CUDA build failed (missing cublas?), falling back to CPU build"
+    rm -rf build
+    cmake -B build
+fi
 cmake --build build --config Release -j$(nproc)
 cd /workspace
 
@@ -56,6 +60,6 @@ source ~/.bashrc
 echo ""
 echo "=== Optional: build llama.cpp (needed for serve.sh) ==="
 echo "Run manually if needed:"
-echo "  apt-get install -y cmake && cd /workspace && git clone https://github.com/ggerganov/llama.cpp && cd llama.cpp && cmake -B build -DLLAMA_CUDA=ON && cmake --build build --config Release -j$(nproc)"
+echo "  apt-get install -y cmake && cd /workspace && git clone https://github.com/ggerganov/llama.cpp && cd llama.cpp && cmake -B build -DGGML_CUDA=ON && cmake --build build --config Release -j$(nproc)"
 echo ""
 echo "=== Done — run 'source ~/.bashrc' to activate aliases in this shell ==="
