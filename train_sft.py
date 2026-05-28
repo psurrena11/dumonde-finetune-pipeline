@@ -18,7 +18,10 @@ parser.add_argument("--no-thinking", action="store_true", help="Disable thinking
 args = parser.parse_args()
 enable_thinking = not args.no_thinking
 
-os.makedirs("/workspace/tuned_model", exist_ok=True)
+FINAL_DIR = "/workspace/tuned_model"
+CHECKPOINT_DIR = "/workspace/checkpoints"
+os.makedirs(FINAL_DIR, exist_ok=True)
+os.makedirs(CHECKPOINT_DIR, exist_ok=True)
 
 print(f"Loading model: {args.model}")
 model, tokenizer = FastLanguageModel.from_pretrained(
@@ -64,7 +67,7 @@ trainer = SFTTrainer(
         gradient_accumulation_steps=4,
         learning_rate=2e-4,
         num_train_epochs=5,
-        output_dir="/workspace/tuned_model",
+        output_dir=CHECKPOINT_DIR,
         report_to="none",
         logging_steps=10,
         save_steps=100,
@@ -73,7 +76,21 @@ trainer = SFTTrainer(
 
 trainer.train()
 
-model.save_pretrained("/workspace/tuned_model")
-tokenizer.save_pretrained("/workspace/tuned_model")
+# Save a standalone, directly-loadable model at FINAL_DIR. A bare
+# model.save_pretrained() writes only the LoRA adapter, which inference/serve/
+# export then fail to pick up, leaving you serving the base model. Merge to
+# 16bit so /workspace/tuned_model is self-contained.
+model.save_pretrained_merged(FINAL_DIR, tokenizer, save_method="merged_16bit")
 
-print("Done. Adapter saved to /workspace/tuned_model")
+# Also keep the lightweight adapter alongside for re-merging at other precisions.
+model.save_pretrained(os.path.join(FINAL_DIR, "adapter"))
+tokenizer.save_pretrained(os.path.join(FINAL_DIR, "adapter"))
+
+# Fail loudly if the merged weights did not land.
+import glob
+weights = glob.glob(os.path.join(FINAL_DIR, "*.safetensors"))
+if not weights:
+    raise RuntimeError(f"No model weights written to {FINAL_DIR} - save failed")
+
+print(f"Done. Merged model saved to {FINAL_DIR} ({len(weights)} shard(s)); "
+      f"adapter at {FINAL_DIR}/adapter; checkpoints in {CHECKPOINT_DIR}")
