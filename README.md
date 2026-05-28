@@ -25,7 +25,7 @@ Tested on Gemma-4 4B with an RTX 4090 (24GB VRAM).
 
 Clone and install (builds llama.cpp — takes ~10 min):
 ```bash
-git clone https://github.com/psurrena11/llm-finetune-pipelin.git /workspace/vast
+git clone https://github.com/psurrena11/dumonde-finetune-pipeline.git /workspace/vast
 bash /workspace/vast/install.sh
 source ~/.bashrc
 ```
@@ -114,5 +114,5 @@ The `Modelfile.example` includes the Gemma chat template and sensible default pa
 ## Notes
 
 - `export_gguf.py` creates an isolated Python venv for llama.cpp to avoid dependency conflicts with the training environment
-- `BNB_CUDA_VERSION` and `TORCHDYNAMO_DISABLE` are set automatically in `train_sft.py` for compatibility with vast.ai CUDA 13.x instances
+- `BNB_CUDA_VERSION` (124) and `TORCHDYNAMO_DISABLE` are set automatically in `train_sft.py` to match the CUDA 12.4 torch wheel installed by `install.sh`
 - llama.cpp is cloned and built by `install.sh` — no manual setup needed

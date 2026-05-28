@@ -1,5 +1,5 @@
 import os
-os.environ.setdefault("BNB_CUDA_VERSION", "130")
+os.environ.setdefault("BNB_CUDA_VERSION", "124")
 os.environ.setdefault("TORCHDYNAMO_DISABLE", "1")
 
 from unsloth import FastLanguageModel
