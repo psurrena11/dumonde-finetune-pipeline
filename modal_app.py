@@ -88,7 +88,7 @@ def _wait_for_ollama(timeout: int = 60):
     gpu="L4",
     volumes={"/models": volume},
     secrets=[modal.Secret.from_name("dumonde-api-key")],
-    scaledown_window=300,  # keep warm 5 min after last request
+    scaledown_window=3600,  # keep warm 1 hour after last request (Modal max)
     timeout=600,
 )
 @modal.concurrent(max_inputs=10)

@@ -114,9 +114,14 @@ The `Modelfile.example` includes the Gemma chat template and sensible default pa
 
 ## Deploy on Modal (serverless GPU)
 
-`modal_app.py` serves the Q4 GGUF through Ollama on a Modal GPU container, behind
-an OpenAI-compatible, bearer-authenticated endpoint. The model scales to zero and
-cold-starts on demand. Intended for the duMonde backend (hosted on Render).
+`modal_app.py` serves the Q4 GGUF through Ollama on a Modal GPU container (L4),
+behind an OpenAI-compatible, bearer-authenticated endpoint. The model scales to
+zero and cold-starts on demand. Consumed by the A/B testing tool in the
+`beforeicallmyparents` repo.
+
+The finetune emits **first-person persona prose**, not structured JSON. It works
+on the A/B **Q&A tab** only — the Today/Conversation/URL/Text tabs expect a
+briefing JSON schema and will error for this model.
 
 ### One-time setup
 
@@ -141,13 +146,13 @@ KEY=$(openssl rand -hex 24); echo "API KEY: $KEY"; modal secret create dumonde-a
 ```bash
 modal deploy modal_app.py
 ```
-Prints the endpoint URL (also `modal app show dumonde`):
+Prints the endpoint URL (also visible via `modal app list` or the dashboard):
 ```
 https://<username>--dumonde-server-api.modal.run
 ```
 
 ### Test
-First chat call cold-starts a GPU and imports the GGUF into the Volume (~30–60s, once); later calls are fast.
+First chat call cold-starts a GPU and imports the GGUF into the Volume (~30–60s, once, cached in the Volume); later cold starts just reload the cached model.
 ```bash
 URL="https://<username>--dumonde-server-api.modal.run"
 KEY="<your API_KEY>"
@@ -162,14 +167,25 @@ curl -s $URL/v1/chat/completions \
 modal app logs dumonde   # live logs
 ```
 
-### Wire up the duMonde backend (Render)
+### Wire up the A/B tool (`beforeicallmyparents`)
 
-Add two env vars to the Render service, then send requests to `${DUMONDE_MODEL_URL}/v1/chat/completions`:
+The A/B harness calls the endpoint via the OpenAI SDK (`gemma4` model key). Set
+these env vars (local `.env` and the Render service):
 
-| Render env var | Value |
+| Env var | Value |
 |---|---|
-| `DUMONDE_MODEL_URL` | the base `.modal.run` URL (no path) |
-| `DUMONDE_MODEL_API_KEY` | the same key stored in the `dumonde-api-key` Modal Secret |
+| `GEMMA4_API_URL` | the endpoint base **with `/v1`**: `https://<username>--dumonde-server-api.modal.run/v1` |
+| `GEMMA4_MODEL_ID` | `dumonde` (must match the Ollama model name in `modal_app.py`) |
+| `GEMMA4_API_KEY` | the real value stored in the `dumonde-api-key` Modal Secret (the endpoint enforces bearer auth — a placeholder will 401) |
+
+The SDK posts to `${GEMMA4_API_URL}/chat/completions` with `Authorization: Bearer ${GEMMA4_API_KEY}`. Use the **Q&A tab** to exercise it.
+
+### Lifecycle / cost
+
+- **Idle:** scales to zero. `scaledown_window` keeps a container warm for that many seconds after the last request (max 3600). At idle = zero, cost is $0.
+- **Stop entirely:** `modal app stop dumonde`. Bring back with `modal deploy modal_app.py`.
+- **Apply config/code changes:** edits to `modal_app.py` only go live on the next `modal deploy` — Modal does not watch the file, and `git commit` does not deploy.
+- An L4 bills ~$0.80/hr while warm; lower `scaledown_window` (e.g. `300`) for bursty use, raise it to stay warm through a working session.
 
 The backend sends `Authorization: Bearer ${DUMONDE_MODEL_API_KEY}`. The key lives only in the Modal Secret and Render env — never in git.
 
