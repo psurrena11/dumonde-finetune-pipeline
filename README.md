@@ -14,6 +14,7 @@ Tested on Gemma-4 4B with an RTX 4090 (24GB VRAM).
 | `test_inference.py` | Quick inference test via Unsloth |
 | `serve.sh` | Serve Q8 GGUF via llama.cpp on port 8080 |
 | `serve_unsloth.py` | OpenAI-compatible API via FastAPI + Unsloth |
+| `modal_app.py` | Deploy the GGUF as an OpenAI-compatible API on Modal (serverless GPU) |
 
 ## Requirements
 
@@ -110,6 +111,71 @@ ollama run my-model
 ```
 
 The `Modelfile.example` includes the Gemma chat template and sensible default parameters. If you trained on a different model family, update the `TEMPLATE` block to match its chat format.
+
+## Deploy on Modal (serverless GPU)
+
+`modal_app.py` serves the Q4 GGUF through Ollama on a Modal GPU container, behind
+an OpenAI-compatible, bearer-authenticated endpoint. The model scales to zero and
+cold-starts on demand. Intended for the duMonde backend (hosted on Render).
+
+### One-time setup
+
+Install + authenticate Modal (local machine):
+```bash
+pip install modal
+modal setup
+```
+
+Upload the GGUF to a Modal Volume (run from the dir holding the file):
+```bash
+modal volume create dumonde-models
+modal volume put dumonde-models gemma4-bws-Q4_K_M.gguf /gemma4-bws-Q4_K_M.gguf
+```
+
+Create the shared API key as a Modal Secret (prints the value — save it):
+```bash
+KEY=$(openssl rand -hex 24); echo "API KEY: $KEY"; modal secret create dumonde-api-key API_KEY=$KEY
+```
+
+### Deploy
+```bash
+modal deploy modal_app.py
+```
+Prints the endpoint URL (also `modal app show dumonde`):
+```
+https://<username>--dumonde-server-api.modal.run
+```
+
+### Test
+First chat call cold-starts a GPU and imports the GGUF into the Volume (~30–60s, once); later calls are fast.
+```bash
+URL="https://<username>--dumonde-server-api.modal.run"
+KEY="<your API_KEY>"
+
+curl -s $URL/health
+
+curl -s $URL/v1/chat/completions \
+  -H "Authorization: Bearer $KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"whats it like on the block today?"}]}'
+
+modal app logs dumonde   # live logs
+```
+
+### Wire up the duMonde backend (Render)
+
+Add two env vars to the Render service, then send requests to `${DUMONDE_MODEL_URL}/v1/chat/completions`:
+
+| Render env var | Value |
+|---|---|
+| `DUMONDE_MODEL_URL` | the base `.modal.run` URL (no path) |
+| `DUMONDE_MODEL_API_KEY` | the same key stored in the `dumonde-api-key` Modal Secret |
+
+The backend sends `Authorization: Bearer ${DUMONDE_MODEL_API_KEY}`. The key lives only in the Modal Secret and Render env — never in git.
+
+### Persona
+
+The Modelfile baked into `modal_app.py` sets a default persona via `SYSTEM`. Callers override it per request by including a `system` message in the chat payload — useful for duMonde's taxonomy-driven voices.
 
 ## Notes
 
