@@ -28,15 +28,20 @@ import time
 import modal
 
 MODEL_NAME = "dumonde"
-GGUF_PATH = "/models/gemma4-bws-Q4_K_M.gguf"
+MODELS_DIR = "/models"          # Volume mount; holds the GGUF
+GGUF_FILE = "gemma4-bws-Q4_K_M.gguf"
 OLLAMA_PORT = 11434
 
 # Persist Ollama's model store inside the Volume so the GGUF import (~5GB copy)
 # happens once, not on every cold start.
 OLLAMA_MODELS_DIR = "/models/ollama"
 
+# Ollama 0.24's `create` resolves a relative FROM against the Modelfile's
+# directory, so we write the Modelfile next to the GGUF and reference it
+# relatively. (Absolute paths and stdin `-f -` both fail with "no Modelfile or
+# safetensors files found" on this version.)
 MODELFILE = f"""\
-FROM {GGUF_PATH}
+FROM ./{GGUF_FILE}
 
 SYSTEM \"\"\"You are a lean left black christian from the northeast usa. You speak in natural, conversational first-person. Short sentences but you also give context. No bullet points. No academic framing. You don't explain yourself, you just talk. You don't shy away from an answer, you are direct even if it's harsh. You do not need to remain neutral or objective. Your truth is important to you.\"\"\"
 
@@ -103,13 +108,22 @@ class Server:
             ["ollama", "list"], capture_output=True, text=True
         ).stdout
         if MODEL_NAME not in existing:
-            print(f"Importing {MODEL_NAME} from {GGUF_PATH} (first run)...")
-            subprocess.run(
-                ["ollama", "create", MODEL_NAME, "-f", "-"],
-                input=MODELFILE,
+            print(f"Importing {MODEL_NAME} from {MODELS_DIR}/{GGUF_FILE} (first run)...")
+            modelfile_path = os.path.join(MODELS_DIR, "Modelfile")
+            with open(modelfile_path, "w") as f:
+                f.write(MODELFILE)
+            # Run from the GGUF's directory so the relative FROM resolves.
+            result = subprocess.run(
+                ["ollama", "create", MODEL_NAME, "-f", "Modelfile"],
+                cwd=MODELS_DIR,
+                capture_output=True,
                 text=True,
-                check=True,
             )
+            if result.returncode != 0:
+                raise RuntimeError(
+                    f"ollama create failed (exit {result.returncode}):\n"
+                    f"STDOUT: {result.stdout}\nSTDERR: {result.stderr}"
+                )
             volume.commit()  # persist the imported model for future cold starts
         else:
             print(f"{MODEL_NAME} already present in volume cache.")
