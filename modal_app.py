@@ -29,7 +29,7 @@ import modal
 
 MODEL_NAME = "dumonde"
 MODELS_DIR = "/models"          # Volume mount; holds the GGUF
-GGUF_FILE = "gemma4-bws-Q4_K_M.gguf"
+GGUF_FILE = "gemma4-bws-Q8_0.gguf"
 OLLAMA_PORT = 11434
 
 # Persist Ollama's model store inside the Volume so the GGUF import (~5GB copy)
@@ -88,7 +88,7 @@ def _wait_for_ollama(timeout: int = 60):
     gpu="L4",
     volumes={"/models": volume},
     secrets=[modal.Secret.from_name("dumonde-api-key")],
-    scaledown_window=3600,  # keep warm 1 hour after last request (Modal max)
+    scaledown_window=1800,  # keep warm 30 min after last request
     timeout=600,
 )
 @modal.concurrent(max_inputs=10)
@@ -144,6 +144,14 @@ class Server:
         @web.get("/health")
         def health():
             return {"status": "ok", "model": MODEL_NAME}
+
+        @web.get("/v1/models")
+        async def models(authorization: str | None = Header(default=None)):
+            check_auth(authorization)
+            url = f"http://127.0.0.1:{OLLAMA_PORT}/v1/models"
+            async with httpx.AsyncClient(timeout=30) as client:
+                r = await client.get(url)
+                return JSONResponse(status_code=r.status_code, content=r.json())
 
         @web.post("/v1/chat/completions")
         async def chat(request: Request, authorization: str | None = Header(default=None)):

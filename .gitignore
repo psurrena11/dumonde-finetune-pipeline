@@ -6,3 +6,4 @@ __pycache__/
 tuned_model/
 gemma4-bws*/
 .env
+modal-errors.txt
