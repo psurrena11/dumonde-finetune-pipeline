@@ -131,10 +131,11 @@ pip install modal
 modal setup
 ```
 
-Upload the GGUF to a Modal Volume (run from the dir holding the file):
+Upload the GGUF to a Modal Volume (run from the dir holding the file). Use the
+Q8_0 (API quality) — `modal_app.py` serves `gemma4-bws-Q8_0.gguf`:
 ```bash
 modal volume create dumonde-models
-modal volume put dumonde-models gemma4-bws-Q4_K_M.gguf /gemma4-bws-Q4_K_M.gguf
+modal volume put dumonde-models gemma4-bws-Q8_0.gguf /gemma4-bws-Q8_0.gguf
 ```
 
 Create the shared API key as a Modal Secret (prints the value — save it):

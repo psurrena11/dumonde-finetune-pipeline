@@ -1,7 +1,7 @@
 """
 Deploy the duMonde finetune on Modal as an OpenAI-compatible API.
 
-Serves the Q4_K_M GGUF through Ollama on a GPU container. The model weights
+Serves the Q8_0 GGUF through Ollama on a GPU container. The model weights
 live in a Modal Volume (uploaded once with `modal volume put`), and the model
 is registered with Ollama on first cold start, then cached in the Volume so
 later cold starts skip the import.
@@ -14,7 +14,7 @@ per request by including a `system` message in the chat payload.
 
 Setup (run once):
     modal volume create dumonde-models
-    modal volume put dumonde-models gemma4-bws-Q4_K_M.gguf /gemma4-bws-Q4_K_M.gguf
+    modal volume put dumonde-models gemma4-bws-Q8_0.gguf /gemma4-bws-Q8_0.gguf
     modal secret create dumonde-api-key API_KEY=$(openssl rand -hex 24)
 
 Deploy:
