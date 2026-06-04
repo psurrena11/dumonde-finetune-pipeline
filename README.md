@@ -10,6 +10,7 @@ Tested on Gemma-4 4B with an RTX 4090 (24GB VRAM).
 |---|---|
 | `install.sh` | Install all deps and build llama.cpp on a fresh instance |
 | `train_sft.py` | SFT fine-tune via Unsloth + LoRA |
+| `train_sft_peft.py` | SFT fine-tune via TRL + PEFT (any HF model, including custom-code) |
 | `export_gguf.py` | Merge adapter and export to Q4/Q8 GGUF |
 | `test_inference.py` | Quick inference test via Unsloth |
 | `serve.sh` | Serve Q8 GGUF via llama.cpp on port 8080 |
@@ -52,6 +53,12 @@ python /workspace/vast/train_sft.py [flags]
 | `--no-thinking` | off | Disable thinking mode in chat template |
 
 Output: `/workspace/tuned_model` (LoRA adapter, ~160MB)
+
+> **Custom-code or non-Unsloth architectures (e.g. Nemotron-H, Mamba hybrids)?**
+> Use `train_sft_peft.py` instead. Same flags as `train_sft.py` plus
+> `--qlora` for 4-bit training. After training, test and serve via the GGUF
+> path (sections 3 + 5) — `test_inference.py` and `serve_unsloth.py` are
+> Unsloth-only.
 
 ### 2. Test
 ```bash
@@ -199,3 +206,25 @@ The Modelfile baked into `modal_app.py` sets a default persona via `SYSTEM`. Cal
 - `export_gguf.py` creates an isolated Python venv for llama.cpp to avoid dependency conflicts with the training environment
 - `BNB_CUDA_VERSION` (124) and `TORCHDYNAMO_DISABLE` are set automatically in `train_sft.py` to match the CUDA 12.4 torch wheel installed by `install.sh`
 - llama.cpp is cloned and built by `install.sh` — no manual setup needed
+
+## Verification
+
+Sanity-check the trainer files after pulling or editing. No tests in this repo —
+just syntax + CLI surface checks (both read-only, no GPU needed).
+
+```bash
+# Syntax
+python -c "import ast; ast.parse(open('train_sft.py').read())"
+python -c "import ast; ast.parse(open('train_sft_peft.py').read())"
+
+# CLI surfaces
+python train_sft.py --help
+python train_sft_peft.py --help
+
+# Confirm common flags match across backends
+diff <(python train_sft.py --help) <(python train_sft_peft.py --help) | head
+```
+
+If `train_sft.py --help` shows `--model`, `--data`, `--rank`, `--alpha` and so
+does `train_sft_peft.py --help`, the two backends are CLI-compatible and either
+one can be swapped in by changing only the script name.
