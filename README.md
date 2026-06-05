@@ -8,9 +8,11 @@ Tested on Gemma-4 4B with an RTX 4090 (24GB VRAM).
 
 | File | Purpose |
 |---|---|
-| `install.sh` | Install all deps and build llama.cpp on a fresh instance |
+| `install.sh` | Install Unsloth deps and build llama.cpp on a fresh instance |
+| `install_peft.sh` | Install PEFT deps in isolated venv (`/workspace/peft-env`) |
 | `train_sft.py` | SFT fine-tune via Unsloth + LoRA |
 | `train_sft_peft.py` | SFT fine-tune via TRL + PEFT (any HF model, including custom-code) |
+
 | `export_gguf.py` | Merge adapter and export to Q4/Q8 GGUF |
 | `test_inference.py` | Quick inference test via Unsloth |
 | `serve.sh` | Serve Q8 GGUF via llama.cpp on port 8080 |
@@ -34,6 +36,12 @@ Clone and install (builds llama.cpp — takes ~10 min):
 git clone https://github.com/psurrena11/dumonde-finetune-pipeline.git /workspace/vast
 bash /workspace/vast/install.sh
 source ~/.bashrc
+```
+
+If using `train_sft_peft.py`, install the PEFT venv separately (avoids Unsloth dependency conflicts):
+```bash
+bash /workspace/vast/install_peft.sh
+source /workspace/peft-env/bin/activate
 ```
 
 Upload training data:
