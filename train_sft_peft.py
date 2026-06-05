@@ -1,11 +1,12 @@
 import os
+import sys
 import argparse
 import json
 import glob
 
 import torch
 from datasets import Dataset
-from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, BitsAndBytesConfig
+from transformers import AutoModelForCausalLM, AutoTokenizer, AutoConfig, TrainingArguments, BitsAndBytesConfig
 from peft import LoraConfig, get_peft_model
 from trl import SFTTrainer
 
@@ -27,6 +28,14 @@ os.makedirs(FINAL_DIR, exist_ok=True)
 os.makedirs(CHECKPOINT_DIR, exist_ok=True)
 
 print(f"Loading model: {args.model}")
+
+# Nemotron-H custom code ships a stale _initialize_missing_keys signature.
+# Patch it before from_pretrained triggers the method call.
+AutoConfig.from_pretrained(args.model, trust_remote_code=True)
+for m in list(sys.modules):
+    if "nemotron" in m.lower() and hasattr(sys.modules[m], "NemotronHPreTrainedModel"):
+        sys.modules[m].NemotronHPreTrainedModel._initialize_missing_keys = lambda self, *a, **kw: None
+
 quant_cfg = None
 if args.qlora:
     quant_cfg = BitsAndBytesConfig(
