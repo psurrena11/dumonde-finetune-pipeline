@@ -91,6 +91,7 @@ trainer = SFTTrainer(
         report_to="none",
         logging_steps=10,
         save_steps=100,
+        push_to_hub=False,
     ),
 )
 trainer.train()
