@@ -52,7 +52,7 @@ lora_cfg = LoraConfig(
     lora_alpha=args.alpha,
     lora_dropout=0,
     target_modules=["q_proj", "k_proj", "v_proj", "o_proj",
-                    "gate_proj", "up_proj", "down_proj"],
+                    "up_proj", "down_proj"],
     task_type="CAUSAL_LM",
 )
 model = get_peft_model(model, lora_cfg)
