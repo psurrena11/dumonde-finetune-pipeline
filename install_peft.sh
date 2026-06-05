@@ -9,7 +9,7 @@ echo "=== Installing PyTorch (CUDA 12.4) ==="
 pip install torch --index-url https://download.pytorch.org/whl/cu124
 
 echo "=== Installing PEFT training deps ==="
-pip install transformers trl peft datasets bitsandbytes accelerate safetensors
+pip install "transformers>=4.46,<5.0" "trl>=0.12,<0.15" "peft>=0.13,<0.15" datasets bitsandbytes accelerate safetensors
 
 echo ""
 echo "=== Done ==="
