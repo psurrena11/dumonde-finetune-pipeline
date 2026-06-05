@@ -46,6 +46,7 @@ model = AutoModelForCausalLM.from_pretrained(
 tokenizer = AutoTokenizer.from_pretrained(args.model, trust_remote_code=True)
 if tokenizer.pad_token is None:
     tokenizer.pad_token = tokenizer.eos_token
+tokenizer.model_max_length = args.max_seq_length
 
 lora_cfg = LoraConfig(
     r=args.rank,
@@ -79,7 +80,6 @@ trainer = SFTTrainer(
     model=model,
     processing_class=tokenizer,
     train_dataset=dataset,
-    max_seq_length=args.max_seq_length,
     args=TrainingArguments(
         per_device_train_batch_size=1,
         gradient_accumulation_steps=8,
