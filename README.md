@@ -23,6 +23,10 @@ Tested on Gemma-4 4B with an RTX 4090 (24GB VRAM).
 - Training data as JSONL with `messages` field (standard chat format)
 - HuggingFace account (for model downloads)
 
+### PEFT backend (`train_sft_peft.py`)
+
+Without Unsloth's memory optimizations, `train_sft_peft.py` needs significantly more VRAM. On an RTX 4090 (24GB), a 4B model fits comfortably with LoRA (rank 16). For larger models (7B+, 4B with high rank), use `--qlora` and/or upgrade to an A6000 (48GB) or A100 (80GB).
+
 ## Setup
 
 Clone and install (builds llama.cpp — takes ~10 min):
