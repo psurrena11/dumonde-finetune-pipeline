@@ -6,7 +6,7 @@ import glob
 
 import torch
 from datasets import Dataset
-from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, BitsAndBytesConfig
+from transformers import AutoModelForCausalLM, PreTrainedTokenizerFast, TrainingArguments, BitsAndBytesConfig
 from peft import LoraConfig, get_peft_model
 from trl import SFTTrainer
 
@@ -62,7 +62,6 @@ except TypeError:
 # Nemotron-H tokenizer_config.json ships TokenizersBackend which only
 # exists in transformers>=5.0. Load the tokenizer.json directly instead.
 from huggingface_hub import hf_hub_download
-from transformers import PreTrainedTokenizerFast
 
 _tok_json = hf_hub_download(args.model, "tokenizer.json")
 tokenizer = PreTrainedTokenizerFast(
