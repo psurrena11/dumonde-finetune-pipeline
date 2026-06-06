@@ -59,6 +59,14 @@ except TypeError:
                 lambda self, *a, **kw: None
     model = _load_model()
 
+# Fix Nemotron-H custom-cache / config incompatibilities with our stack.
+model.config.use_cache = False
+for m in list(sys.modules):
+    if hasattr(sys.modules[m], "HybridMambaAttentionDynamicCache"):
+        _cache_cls = sys.modules[m].HybridMambaAttentionDynamicCache
+        _cache_cls.float = lambda self: self
+        _cache_cls.bfloat16 = lambda self: self
+
 # Nemotron-H config stores time_step_limit[1] as {"__float__":"Infinity"}
 # instead of float("inf"). Fix it on every Mamba2 mixer layer.
 for layer in model.model.layers:
