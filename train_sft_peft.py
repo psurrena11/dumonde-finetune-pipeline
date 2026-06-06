@@ -146,8 +146,8 @@ trainer = SFTTrainer(
 trainer.train()
 
 print("Merging LoRA adapter into base model...")
-merged = model.merge_and_unload()
-merged.save_pretrained(FINAL_DIR, safe_serialization=True)
+    model = model.merge_and_unload()
+    model.save_pretrained(FINAL_DIR, safe_serialization=True)
 tokenizer.save_pretrained(FINAL_DIR)
 
 model.save_pretrained(os.path.join(FINAL_DIR, "adapter"))

@@ -1,23 +1,23 @@
 import os
 import subprocess
 import sys
-from unsloth import FastLanguageModel
 
-MERGED_DIR   = "/workspace/gemma4-bws"
+TUNED_DIR    = "/workspace/tuned_model"
 LLAMA_DIR    = "/workspace/llama.cpp"
 VENV_DIR     = "/workspace/llama-env"
 VENV_PY      = f"{VENV_DIR}/bin/python"
 VENV_PIP     = f"{VENV_DIR}/bin/pip"
 QUANTIZE_BIN = f"{LLAMA_DIR}/build/bin/llama-quantize"
-OUT_F16      = "/workspace/gemma4-bws-f16.gguf"
-OUT_Q4       = "/workspace/gemma4-bws-Q4_K_M.gguf"
-OUT_Q8       = "/workspace/gemma4-bws-Q8_0.gguf"
+OUT_F16      = "/workspace/tuned-f16.gguf"
+OUT_Q4       = "/workspace/tuned-Q4_K_M.gguf"
+OUT_Q8       = "/workspace/tuned-Q8_0.gguf"
 
-# Step 1: merge adapter into base model
-print("=== Merging adapter into base model ===")
-model, tokenizer = FastLanguageModel.from_pretrained("/workspace/tuned_model", load_in_4bit=False)
-model.save_pretrained_merged(MERGED_DIR, tokenizer, save_method="merged_16bit")
-print(f"Merged model saved to {MERGED_DIR}")
+# Step 1: merge if adapter exists (Unsloth path)
+if os.path.exists(os.path.join(TUNED_DIR, "adapter")):
+    print("=== Merging adapter (Unsloth) ===")
+    from unsloth import FastLanguageModel
+    model, tokenizer = FastLanguageModel.from_pretrained(TUNED_DIR, load_in_4bit=False)
+    model.save_pretrained_merged(TUNED_DIR, tokenizer, save_method="merged_16bit")
 
 # Step 2: clone llama.cpp if not present
 if not os.path.exists(LLAMA_DIR):
@@ -34,7 +34,7 @@ if not os.path.exists(VENV_PY):
 # Step 4: convert to f16 GGUF (base for quantization)
 convert = f"{LLAMA_DIR}/convert_hf_to_gguf.py"
 print("=== Converting to f16 GGUF ===")
-subprocess.run([VENV_PY, convert, MERGED_DIR, "--outfile", OUT_F16, "--outtype", "f16"], check=True)
+subprocess.run([VENV_PY, convert, TUNED_DIR, "--outfile", OUT_F16, "--outtype", "f16"], check=True)
 
 # Step 5: quantize to Q8 and Q4 using llama-quantize binary
 print("=== Quantizing to Q8_0 ===")
