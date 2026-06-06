@@ -6,7 +6,7 @@ import glob
 
 import torch
 from datasets import Dataset
-from transformers import AutoModelForCausalLM, AutoTokenizer, AutoConfig, TrainingArguments, BitsAndBytesConfig
+from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, BitsAndBytesConfig
 from peft import LoraConfig, get_peft_model
 from trl import SFTTrainer
 
@@ -30,12 +30,8 @@ os.makedirs(CHECKPOINT_DIR, exist_ok=True)
 print(f"Loading model: {args.model}")
 
 # Nemotron-H custom code ships a stale _initialize_missing_keys signature.
-# Patch it before from_pretrained triggers the method call.
-AutoConfig.from_pretrained(args.model, trust_remote_code=True)
-for m in list(sys.modules):
-    if "nemotron" in m.lower() and hasattr(sys.modules[m], "NemotronHPreTrainedModel"):
-        sys.modules[m].NemotronHPreTrainedModel._initialize_missing_keys = lambda self, *a, **kw: None
-
+# AutoConfig alone doesn't trigger the modeling-module import, so patching
+# must happen AFTER the first from_pretrained attempt loads the module.
 quant_cfg = None
 if args.qlora:
     quant_cfg = BitsAndBytesConfig(
@@ -45,13 +41,23 @@ if args.qlora:
         bnb_4bit_use_double_quant=True,
     )
 
-model = AutoModelForCausalLM.from_pretrained(
-    args.model,
-    trust_remote_code=True,
-    torch_dtype=torch.bfloat16,
-    quantization_config=quant_cfg,
-    device_map="auto",
-)
+def _load_model():
+    return AutoModelForCausalLM.from_pretrained(
+        args.model,
+        trust_remote_code=True,
+        torch_dtype=torch.bfloat16,
+        quantization_config=quant_cfg,
+        device_map="auto",
+    )
+
+try:
+    model = _load_model()
+except TypeError:
+    for m in list(sys.modules):
+        if hasattr(sys.modules[m], "NemotronHPreTrainedModel"):
+            sys.modules[m].NemotronHPreTrainedModel._initialize_missing_keys = \
+                lambda self, *a, **kw: None
+    model = _load_model()
 tokenizer = AutoTokenizer.from_pretrained(args.model, trust_remote_code=True)
 if tokenizer.pad_token is None:
     tokenizer.pad_token = tokenizer.eos_token
