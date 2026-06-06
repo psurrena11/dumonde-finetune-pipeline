@@ -23,10 +23,15 @@ if os.path.exists(os.path.join(TUNED_DIR, "adapter")):
         model, tokenizer = FastLanguageModel.from_pretrained(TUNED_DIR, load_in_4bit=False)
         model.save_pretrained_merged(TUNED_DIR, tokenizer, save_method="merged_16bit")
 
-# Step 2: clone llama.cpp if not present
+# Step 2: clone llama.cpp if not present, then build
 if not os.path.exists(LLAMA_DIR):
     print("=== Cloning llama.cpp ===")
     subprocess.run(["git", "clone", "https://github.com/ggerganov/llama.cpp", LLAMA_DIR], check=True)
+
+if not os.path.exists(QUANTIZE_BIN):
+    print("=== Building llama.cpp ===")
+    subprocess.run(["cmake", "-B", "build", "-DGGML_CUDA=ON"], cwd=LLAMA_DIR, check=True)
+    subprocess.run(["cmake", "--build", "build", "--config", "Release", "-j", str(os.cpu_count())], cwd=LLAMA_DIR, check=True)
 
 # Step 3: set up isolated venv for llama.cpp Python deps
 if not os.path.exists(VENV_PY):
