@@ -59,37 +59,42 @@ except TypeError:
                 lambda self, *a, **kw: None
     model = _load_model()
 
-# Fix Nemotron-H custom-cache / config incompatibilities with our stack.
-model.config.use_cache = False
-for m in list(sys.modules):
-    if hasattr(sys.modules[m], "HybridMambaAttentionDynamicCache"):
-        _cache_cls = sys.modules[m].HybridMambaAttentionDynamicCache
-        _cache_cls.float = lambda self: self
-        _cache_cls.bfloat16 = lambda self: self
-
-# Nemotron-H config stores time_step_limit[1] as {"__float__":"Infinity"}
-# instead of float("inf"). Fix it on every Mamba2 mixer layer.
-for layer in model.model.layers:
-    mixer = layer.mixer
-    if hasattr(mixer, "time_step_limit"):
-        mixer.time_step_limit = [0.0, float("inf")]
-
-# Nemotron-H tokenizer_config.json ships TokenizersBackend which only
-# exists in transformers>=5.0. Load the tokenizer.json directly instead.
 from huggingface_hub import hf_hub_download
 
-_tok_json = hf_hub_download(args.model, "tokenizer.json")
-_chat_tpl = hf_hub_download(args.model, "chat_template.jinja")
-with open(_chat_tpl) as f:
-    _chat_tpl_str = f.read()
-tokenizer = PreTrainedTokenizerFast(
-    tokenizer_file=_tok_json,
-    bos_token="<s>",
-    eos_token="<SPECIAL_12>",
-    unk_token="<unk>",
-    pad_token="<unk>",
-    chat_template=_chat_tpl_str,
-)
+# Nemotron-H uses custom code with broke compat — apply fixes only for that arch.
+_is_nemotron = getattr(getattr(model, "config", None), "model_type", "?") == "nemotron_h"
+
+if _is_nemotron:
+    model.config.use_cache = False
+    for m in list(sys.modules):
+        if hasattr(sys.modules[m], "HybridMambaAttentionDynamicCache"):
+            _cache_cls = sys.modules[m].HybridMambaAttentionDynamicCache
+            _cache_cls.float = lambda self: self
+            _cache_cls.bfloat16 = lambda self: self
+
+    for layer in model.model.layers:
+        mixer = getattr(layer, "mixer", None)
+        if mixer is not None and hasattr(mixer, "time_step_limit"):
+            mixer.time_step_limit = [0.0, float("inf")]
+
+    _tok_json = hf_hub_download(args.model, "tokenizer.json")
+    _chat_tpl = hf_hub_download(args.model, "chat_template.jinja")
+    with open(_chat_tpl) as f:
+        _chat_tpl_str = f.read()
+    tokenizer = PreTrainedTokenizerFast(
+        tokenizer_file=_tok_json,
+        bos_token="<s>",
+        eos_token="<SPECIAL_12>",
+        unk_token="<unk>",
+        pad_token="<unk>",
+        chat_template=_chat_tpl_str,
+    )
+else:
+    from transformers import AutoTokenizer
+    tokenizer = AutoTokenizer.from_pretrained(args.model, trust_remote_code=True)
+
+if tokenizer.pad_token is None:
+    tokenizer.pad_token = tokenizer.eos_token
 tokenizer.model_max_length = args.max_seq_length
 
 lora_cfg = LoraConfig(
