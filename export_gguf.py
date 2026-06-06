@@ -12,12 +12,16 @@ OUT_F16      = "/workspace/tuned-f16.gguf"
 OUT_Q4       = "/workspace/tuned-Q4_K_M.gguf"
 OUT_Q8       = "/workspace/tuned-Q8_0.gguf"
 
-# Step 1: merge if adapter exists (Unsloth path)
+# Step 1: merge if using Unsloth (adapter is a separate checkpoint)
 if os.path.exists(os.path.join(TUNED_DIR, "adapter")):
-    print("=== Merging adapter (Unsloth) ===")
-    from unsloth import FastLanguageModel
-    model, tokenizer = FastLanguageModel.from_pretrained(TUNED_DIR, load_in_4bit=False)
-    model.save_pretrained_merged(TUNED_DIR, tokenizer, save_method="merged_16bit")
+    try:
+        from unsloth import FastLanguageModel
+    except ImportError:
+        pass  # PEFT path — already merged by train script
+    else:
+        print("=== Merging adapter (Unsloth) ===")
+        model, tokenizer = FastLanguageModel.from_pretrained(TUNED_DIR, load_in_4bit=False)
+        model.save_pretrained_merged(TUNED_DIR, tokenizer, save_method="merged_16bit")
 
 # Step 2: clone llama.cpp if not present
 if not os.path.exists(LLAMA_DIR):
