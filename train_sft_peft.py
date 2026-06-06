@@ -59,6 +59,13 @@ except TypeError:
                 lambda self, *a, **kw: None
     model = _load_model()
 
+# Nemotron-H config stores time_step_limit[1] as {"__float__":"Infinity"}
+# instead of float("inf"). Fix it on every Mamba2 mixer layer.
+for layer in model.model.layers:
+    mixer = layer.mixer
+    if hasattr(mixer, "time_step_limit"):
+        mixer.time_step_limit = [0.0, float("inf")]
+
 # Nemotron-H tokenizer_config.json ships TokenizersBackend which only
 # exists in transformers>=5.0. Load the tokenizer.json directly instead.
 from huggingface_hub import hf_hub_download
