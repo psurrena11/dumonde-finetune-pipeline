@@ -58,7 +58,23 @@ except TypeError:
             sys.modules[m].NemotronHPreTrainedModel._initialize_missing_keys = \
                 lambda self, *a, **kw: None
     model = _load_model()
-tokenizer = AutoTokenizer.from_pretrained(args.model, trust_remote_code=True)
+
+# Nemotron-H tokenizer_config.json ships TokenizersBackend which only
+# exists in transformers>=5.0. Patch the cached config to use the
+# standard PreTrainedTokenizerFast instead.
+from huggingface_hub import hf_hub_download
+import tempfile
+
+_tok_cfg_path = hf_hub_download(args.model, "tokenizer_config.json")
+with open(_tok_cfg_path) as f:
+    _tok_cfg = json.load(f)
+_tok_cfg["tokenizer_class"] = "PreTrainedTokenizerFast"
+with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as _tmp:
+    json.dump(_tok_cfg, _tmp)
+    _tmp_cfg = _tmp.name
+
+tokenizer = AutoTokenizer.from_pretrained(_tmp_cfg, trust_remote_code=True)
+os.unlink(_tmp_cfg)
 if tokenizer.pad_token is None:
     tokenizer.pad_token = tokenizer.eos_token
 tokenizer.model_max_length = args.max_seq_length
