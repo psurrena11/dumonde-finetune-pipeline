@@ -64,12 +64,16 @@ except TypeError:
 from huggingface_hub import hf_hub_download
 
 _tok_json = hf_hub_download(args.model, "tokenizer.json")
+_chat_tpl = hf_hub_download(args.model, "chat_template.jinja")
+with open(_chat_tpl) as f:
+    _chat_tpl_str = f.read()
 tokenizer = PreTrainedTokenizerFast(
     tokenizer_file=_tok_json,
     bos_token="<s>",
     eos_token="<SPECIAL_12>",
     unk_token="<unk>",
     pad_token="<unk>",
+    chat_template=_chat_tpl_str,
 )
 tokenizer.model_max_length = args.max_seq_length
 
